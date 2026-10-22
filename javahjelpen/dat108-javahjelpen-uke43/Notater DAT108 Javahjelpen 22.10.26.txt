@@ -1,0 +1,73 @@
+-------------------------------------------------------
+Notater fra DAT108 Javahjelpen torsdag 22.10.26 (uke43)
+-------------------------------------------------------
+
+
+Vi løste i fellesskap eksamen våren 2024, Oppgave 6
+
+a)
+@GetMapping("/kontooeversikt")
+public String henteKontooversikt(HttpServletRequest request, Model model) {
+	
+	if (!logginnService.erLoggetInn(request)) {
+		return "redirect:feilside.html"; //URL
+	}
+
+	Kunde kunde= (Kunde) request.getSession().getAttribute("kunde");
+	List<Konto> kontoer = bankService.hentAll...(kunde.getId());
+
+	model.addAtrribute("kontoliste", kontoer);
+
+	return "kontooversikt"; //Navn på view
+}
+
+b) 
+<body>
+	<h1>Kontooversikt</h1>
+	<p th:text="|Innlogget som ${session.kunde.fornavn} ${session.kunde.etternavn}|"></p>
+	<table th:if="${!empty kontoliste}">
+		<tr th:each="konto : ${kontoliste}">
+			<td th:text="${konto.kontonr}"></td>
+			<td th:text="${konto.kontonavn}"></td>
+			<td th:text="${konto.saldo}"></td>
+			<td><a th:href="/endrekontonavn?kontonr=${konto.kontonr}">Endre kontonavn</a></td>
+		</tr>
+	</table
+	<p th:if="${empty kontoliste}">Ingen aktive kontoer</p>
+</body>
+
+d)
+//Antar at aktuell konto lagres i model
+<body>
+	...
+	<form method="post" action="/endrekontonavn">
+		<table>
+			..
+			<tr>
+				<td th:text="${konto.kontonr}"></td>
+				<td><input type="text" name="kontonavn" th:value="${konto.kontonavn}"></td>
+			</tr>
+		</table>
+		<input type="hidden" name="kontonr" th:value="${konto.kontonr}">
+		<button type="submit">Lagre nytt navn</button>
+	</form>
+
+</body>
+
+e)
+@PostMapping("/endrekontonavn")
+public String lagreNyttKontonavn(String kontonr, String kontonavn) {
+
+	boolean erInnlogget = ..
+	boolean kundeEierKonto = ..
+	boolean gyldigKontonavn = ..
+
+	if (!erInnlogget || !kundeEierKonto || !gyldigKontonavn) {
+		return "redirect:feilside.html";
+	}
+
+	bankService.oppdaterKontoMedNyttNavn(kontonr, kontonavn);
+
+	return "redirect:kontooversikt";
+}
+
